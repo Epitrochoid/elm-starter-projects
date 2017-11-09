@@ -28,6 +28,7 @@ main =
 type alias Model =
     { level : Level
     , character : Character
+    , enemies : [Enemy]
     }
 
 
@@ -44,6 +45,14 @@ type alias Character =
     , baseSpeed : Float
     , jumpVel : Float
     , gravity : Float
+    , img : String
+    }
+
+
+type alias Enemy =
+    { facing : Direction
+    , position : Float
+    , speed : Float
     , img : String
     }
 
@@ -68,6 +77,13 @@ init =
             , gravity = 1000
             , img = "sprites/player character/32 x 32 platform character_idle_0.png"
             }
+      , enemies = [
+            { facing = Left
+            , position = 100
+            , speed = 100
+            , img = "sprites/enemy/enemy.png"
+            }
+      ]
       }
     , Cmd.none
     )
