@@ -54,10 +54,26 @@ type alias Enemy =
     , img : String
     }
 
-defaultEnemy : Enemy
-defaultEnemy =
+defaultEnemyA : Enemy
+defaultEnemyA =
   { facing = Left
-  , position = ( 80, -234 )
+  , position = ( 280, -234 )
+  , speed = 100
+  , img = "sprites/enemies/goomba.png"
+  }
+
+defaultEnemyB : Enemy
+defaultEnemyB =
+  { facing = Left
+  , position = ( 350, -234 )
+  , speed = 100
+  , img = "sprites/enemies/goomba.png"
+  }
+
+defaultEnemyC : Enemy
+defaultEnemyC =
+  { facing = Left
+  , position = ( 140, -184 )
   , speed = 100
   , img = "sprites/enemies/goomba.png"
   }
@@ -82,9 +98,11 @@ init =
             , gravity = 1000
             , img = "sprites/player character/32 x 32 platform character_idle_0.png"
             }
-      , enemies = [
-          defaultEnemy
-        ]
+      , enemies =
+          [ defaultEnemyA
+          , defaultEnemyB
+          , defaultEnemyC
+          ]
       }
     , Cmd.none
     )
@@ -124,7 +142,7 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     ( { model |
-        character = updateCharacter msg model.level model.character,
+        character =  List.foldr handleCollision (updateCharacter msg model.level model.character) model.enemies,
         enemies = List.map (updateEnemies model.character) model.enemies
       }
     , Cmd.none
@@ -169,6 +187,22 @@ updateCharacter msg level character =
         NoOp ->
             character
 
+handleCollision : Enemy -> Character -> Character
+handleCollision enemy character =
+    let
+        tupleSubtract tupA tupB =
+            (Tuple.first tupA - Tuple.first tupB, Tuple.second tupA - Tuple.second tupB)
+
+        diffTuple = tupleSubtract character.position enemy.position
+    in
+        if (((Tuple.first diffTuple |> abs) < 32) && ((Tuple.second diffTuple |> abs) < 32)) then
+           if Tuple.second character.velocity < -5 then
+              character
+           else
+              { character | img = "sprites/enviroment sprites/explosion.png" }
+        else
+           character
+
 updateEnemies : Character -> Enemy -> Enemy
 updateEnemies character enemy =
     let
@@ -177,7 +211,8 @@ updateEnemies character enemy =
 
         diffTuple = tupleSubtract character.position enemy.position
     in
-        if (((Tuple.first diffTuple |> abs) < 32) && ((Tuple.second diffTuple |> abs) < 32)) then
+        if (((Tuple.first diffTuple |> abs) < 32) && ((Tuple.second diffTuple |> abs) < 32))
+            && Tuple.second character.velocity < -5 then
             { enemy | img = "sprites/enemies/squished_goomba.png" }
         else
             enemy
@@ -251,10 +286,9 @@ view model =
             collage
                 model.level.xSize
                 model.level.ySize
-                [ background model.level
+                ([ background model.level
                 , character model.character
-                , model.enemies |> List.head |> Maybe.withDefault defaultEnemy |> enemy
-                ]
+                ] ++ List.map enemy model.enemies)
         , div [ class "instructions" ]
             [ text "Use A and D to move, Space to jump"
             ]
