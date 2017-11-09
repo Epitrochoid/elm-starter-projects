@@ -57,7 +57,7 @@ type alias Enemy =
 defaultEnemy : Enemy
 defaultEnemy =
   { facing = Left
-  , position = ( 0, -234 )
+  , position = ( 80, -234 )
   , speed = 100
   , img = "sprites/enemies/goomba.png"
   }
@@ -123,9 +123,9 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( { model
-        | character =
-            updateCharacter msg model.level model.character
+    ( { model |
+        character = updateCharacter msg model.level model.character,
+        enemies = List.map (updateEnemies model.character) model.enemies
       }
     , Cmd.none
     )
@@ -169,6 +169,18 @@ updateCharacter msg level character =
         NoOp ->
             character
 
+updateEnemies : Character -> Enemy -> Enemy
+updateEnemies character enemy =
+    let
+        tupleSubtract tupA tupB =
+            (Tuple.first tupA - Tuple.first tupB, Tuple.second tupA - Tuple.second tupB)
+
+        diffTuple = tupleSubtract character.position enemy.position
+    in
+        if (((Tuple.first diffTuple |> abs) < 32) && ((Tuple.second diffTuple |> abs) < 32)) then
+            { enemy | img = "sprites/enemies/squished_goomba.png" }
+        else
+            enemy
 
 movement : Time -> Level -> Character -> Character
 movement dtMillis level obj =
