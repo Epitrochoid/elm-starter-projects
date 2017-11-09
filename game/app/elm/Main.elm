@@ -28,7 +28,7 @@ main =
 type alias Model =
     { level : Level
     , character : Character
-    , enemies : [Enemy]
+    , enemies : List Enemy
     }
 
 
