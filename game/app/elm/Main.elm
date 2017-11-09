@@ -1,5 +1,4 @@
 module Main exposing (main)
-
 import Html exposing (Html, text, div)
 import Html.Attributes exposing (class)
 import AnimationFrame
@@ -11,7 +10,7 @@ import Color
 import Char
 import Keyboard exposing (KeyCode)
 
-
+main : Program Never Model Msg
 main =
     Html.program
         { init = init
@@ -19,7 +18,6 @@ main =
         , view = view
         , subscriptions = subs
         }
-
 
 
 -- Model
@@ -51,11 +49,18 @@ type alias Character =
 
 type alias Enemy =
     { facing : Direction
-    , position : Float
+    , position : ( Float, Float )
     , speed : Float
     , img : String
     }
 
+defaultEnemy : Enemy
+defaultEnemy =
+  { facing = Left
+  , position = ( 0, -234 )
+  , speed = 100
+  , img = "sprites/enemies/goomba.png"
+  }
 
 type Direction
     = Left
@@ -78,12 +83,8 @@ init =
             , img = "sprites/player character/32 x 32 platform character_idle_0.png"
             }
       , enemies = [
-            { facing = Left
-            , position = 100
-            , speed = 100
-            , img = "sprites/enemy/enemy.png"
-            }
-      ]
+          defaultEnemy
+        ]
       }
     , Cmd.none
     )
@@ -240,6 +241,7 @@ view model =
                 model.level.ySize
                 [ background model.level
                 , character model.character
+                , model.enemies |> List.head |> Maybe.withDefault defaultEnemy |> enemy
                 ]
         , div [ class "instructions" ]
             [ text "Use A and D to move, Space to jump"
@@ -269,6 +271,23 @@ character character =
         ]
             |> groupTransform (Transform.scaleX xScale)
             |> move (character.position |> Tuple.mapFirst ((*) xScale))
+
+enemy : Enemy -> Form
+enemy enemy =
+    let
+        xScale =
+            case enemy.facing of
+                Left ->
+                    -1
+
+                Right ->
+                    1
+    in
+        [ image 32 32 enemy.img
+            |> toForm
+        ]
+            |> groupTransform (Transform.scaleX xScale)
+            |> move (enemy.position |> Tuple.mapFirst ((*) xScale))
 
 
 
